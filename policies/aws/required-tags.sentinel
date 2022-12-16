@@ -1,0 +1,22 @@
+# Policy to require that certain tags are present on all AWS resources that support them.
+
+# Import tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
+
+# Import aws-functions.sentinel with alias "aws"
+import "aws-functions" as aws
+
+# List of required tags
+param mandatory_tags default ["Name", "Owner"]
+
+# Get all AWS Resources with standard tags
+all_aws_resources_with_standard_tags = aws.find_resources_with_standard_tags()
+
+# Filter to AWS resources with violations
+# Warnings will be printed for all violations since the last parameter is true
+violating_aws_resources = plan.filter_attribute_not_contains_list(all_aws_resources_with_standard_tags, "tags", mandatory_tags, true)
+
+# Main rule
+main = rule {
+	length(violating_aws_resources["messages"]) is 0
+}

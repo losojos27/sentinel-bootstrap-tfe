@@ -1,0 +1,22 @@
+# Policy to require that certain tags are present on all VMWare resources that support them.
+
+# Import tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
+
+# Import vmware-functions.sentinel with alias "vmware"
+import "vmware-functions" as vmware
+
+# List of required tags
+param mandatory_tags default ["Name", "Owner"]
+
+# Get all VMWare Resources with standard tags
+all_vmware_resources_with_standard_tags = vmware.find_resources_with_standard_tags()
+
+# Filter to VMWare resources with violations
+# Warnings will be printed for all violations since the last parameter is true
+violating_vmware_resources = plan.filter_attribute_not_contains_list(all_vmware_resources_with_standard_tags, "tags", mandatory_tags, true)
+
+# Main rule
+main = rule {
+	length(violating_vmware_resources["messages"]) is 0
+}

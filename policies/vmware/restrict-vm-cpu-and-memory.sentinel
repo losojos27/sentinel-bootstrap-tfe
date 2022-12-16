@@ -1,0 +1,25 @@
+# Policy to restrict how many "num_cpus" and "memory" that can be used on "vsphere_virtual_machine" resources
+
+# Import tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
+
+# Max values for VM CPUS and Memory
+param max_cpus default 4
+param max_memory default 8192
+
+# Get all VMWare VMs
+all_vms = plan.find_resources("vsphere_virtual_machine")
+
+# Filter to VMWare VMs with high CPU
+# Warnings will be printed for all violations since the last parameter is true
+high_cpu_vms = plan.filter_attribute_greater_than_value(all_vms, "num_cpus", max_cpus, true)
+
+# Filter to VMWare VMs with high memory
+# Warnings will be printed for all violations since the last parameter is true
+high_memory_vms = plan.filter_attribute_greater_than_value(all_vms, "memory", max_memory, true)
+
+# Main rule
+main = rule {
+	length(high_cpu_vms["messages"]) is 0 and
+	length(high_memory_vms["messages"]) is 0
+}

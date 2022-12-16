@@ -1,0 +1,19 @@
+# Policy to restrict which "instance_type" that can be used on "aws_instance" resources
+
+# Import tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
+
+# List of allowed EC2 Instance Types
+param allowed_types default ["t2.small", "t2.medium", "t2.large"]
+
+# Get all EC2 instances
+all_ec2_instances = plan.find_resources("aws_instance")
+
+# Filter to EC2 instances with violations
+# Warnings will be printed for all violations since the last parameter is true
+violating_aws_resources = plan.filter_attribute_not_in_list(all_ec2_instances, "instance_type", allowed_types, true)
+
+# Main rule
+main = rule {
+	length(violating_aws_resources["messages"]) is 0
+}

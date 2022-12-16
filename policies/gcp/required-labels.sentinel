@@ -1,0 +1,22 @@
+# Policy to require that certain labels are present on all GCP resources that support them.
+
+# Import tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
+
+# Import gcp-functions.sentinel with alias "gcp"
+import "gcp-functions" as gcp
+
+# List of required tags
+param mandatory_labels default ["name", "owner"]
+
+# Get all GCP Resources with standard labels
+all_gcp_resources_with_standard_labels = gcp.find_resources_with_standard_labels()
+
+# Filter to GCP resources with violations
+# Warnings will be printed for all violations since the last parameter is true
+violating_gcp_resources = plan.filter_attribute_not_contains_list(all_gcp_resources_with_standard_labels, "labels", mandatory_labels, true)
+
+# Main rule
+main = rule {
+	length(violating_gcp_resources["messages"]) is 0
+}
